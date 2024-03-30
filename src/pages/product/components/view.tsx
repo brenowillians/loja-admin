@@ -256,7 +256,7 @@ export default function ViewProductComponent(props: ViewProductProps) {
             setSnackMessage("Registro criado com sucesso.")
           }
           setOpen(false)
-          setReload(!reload)
+          setReload(!reload) 
         }
         catch(error){
           console.log(error)
