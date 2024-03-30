@@ -257,6 +257,7 @@ export default function ViewProductComponent(props: ViewProductProps) {
           }
           setOpen(false)
           setReload(!reload) 
+          
         }
         catch(error){
           console.log(error)
