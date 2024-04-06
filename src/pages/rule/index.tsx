@@ -20,17 +20,15 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import Checkbox from '@mui/material/Checkbox';
 import Snackbar from '@mui/material/Snackbar';
 
-interface DataBrand {
-    idBrand?: number;
-    name: string ;
-    active: boolean ;
-    createdId: number;
-    updatedId: number | null;
+interface DataRule {
+    idRule?: number;
+    description: string ;
+    
 }
 
 const schema = yup.object().shape({
-    name: yup.string().required("O Nome do Banco não pode estar em branco."),
-    active: yup.boolean()
+    description: yup.string().required("O Nome do Banco não pode estar em branco."),
+    
 })
 //yup:controla as ações individuais no formulário de cada função (cada botão de switch, o que for ou não preenchido etc)
 
@@ -43,20 +41,17 @@ export default function StickyHeadTable() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [search, setSearch] = React.useState('');
-  const [brands, setBrands] =React.useState<DataBrand[]>([])
-  const [brand, setBrand] =React.useState<DataBrand>({
-    idBrand:0,
-    name: '',
-    active: false,
-    createdId: 0,
-    updatedId: null
+  const [rules, setRules] =React.useState<DataRule[]>([])
+  const [rule, setRule] =React.useState<DataRule>({
+    idRule: 0,
+    description: ''
   })
   const [total, setTotal] = React.useState(0);
  
 
   const defaultValues = {
-    name: brand.name,
-    active: brand.active
+    description: rule.description,
+    
     }
 
     const {
@@ -73,10 +68,9 @@ export default function StickyHeadTable() {
 
     React.useEffect(()=>{
         reset({
-            name: brand.name,
-            active: brand.active
+            description: rule.description,
         })
-    },[brand])
+    },[rule])
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -91,21 +85,21 @@ export default function StickyHeadTable() {
 //função que estabele quantos produtos serão listados na pagina
 
 
-  const handleEdit = (brandParameter: DataBrand) => {
+  const handleEdit = (ruleParameter: DataRule) => {
     //função que abre o Dialog de criação / edição de cadastros
-    setBrand(brandParameter)
+    setRule(ruleParameter)
     setOpen(true)
   };
 
-  const handleDelete = async (brandParameter: DataBrand) => {
+  const handleDelete = async (ruleParameter: DataRule) => {
     try{
-        await http.delete(`service-product/brand/${brandParameter.idBrand}`)
+        await http.delete(`service-user/rule/${ruleParameter.idRule}`)
         setReload(!reload)
         setSnackMessage("Registro excluído com sucesso.")
     }
     catch(error){
         console.log(error);
-        setSnackMessage("Não foi possível excluir a Marca")
+        setSnackMessage("Não foi possível excluir o Tamanho")
     }
 
   };
@@ -143,16 +137,16 @@ export default function StickyHeadTable() {
   const onSubmit =  async(data: any) =>{
     try{
 
-        let modifiedBrand={...brand,...data}
+        let modifiedRule={...rule,...data}
 
-      setBrand(modifiedBrand)
+      setRule(modifiedRule)
   
-      if(modifiedBrand.idBrand){ //UPDATE
-        await http.patch(`service-product/brand/${modifiedBrand.idBrand}`,modifiedBrand)
+      if(modifiedRule.idRule){ //UPDATE
+        await http.patch(`service-user/rule/${modifiedRule.idRule}`,modifiedRule)
         setSnackMessage("Registro atualizado com sucesso.")
       }
       else{ //INSERT
-        await http.post(`service-product/brand/`,modifiedBrand)
+        await http.post(`service-user/rule/`,modifiedRule)
         setSnackMessage("Registro criado com sucesso.")
       }
       setOpen(false)
@@ -163,21 +157,21 @@ export default function StickyHeadTable() {
       setSnackMessage("Não foi possível processar a solicitação.")
     }
   }
-  //função que faz subir e registrar a brand, seja criando uma nova, seja editando uma já criada.
+  //função que faz subir e registrar o tamanho, seja criando uma nova, seja editando uma já criada.
 
   React.useEffect (()=>{
     const loadData = async () =>{
         try{
             console.log('load')
-            const response = await http.post('service-product/brand/list', {
-                name: search,
+            const response = await http.post('service-user/rule/list', {
+                description: search,
                 items: rowsPerPage,
                 page: page+1,
-                order: {name:"ASC"}
+                order: {description:"ASC"}
             })
             if(response.data.data?.result){
                 if(Array.isArray(response.data.data.result)){
-                    setBrands(response.data.data.result)
+                    setRules(response.data.data.result)
                     setTotal(response.data.data.total)
                 }
                 else{
@@ -218,10 +212,8 @@ export default function StickyHeadTable() {
                     <Grid item xs={2}>
                         <Button type='submit' 
                             onClick={() =>handleEdit({
-                                name: '',
-                                active: false,
-                                createdId: 0,
-                                updatedId: null
+                                description: '',
+                                
                               })} 
                             variant='contained' 
                             sx={{ mr: 1, mt:3 }}
@@ -242,29 +234,15 @@ export default function StickyHeadTable() {
                                 align={'left'}
                                 style={{ minWidth: 200 }}
                             >
-                                Marca do Produto
+                                Descrição
                             </TableCell>
 
-                            <TableCell
-                                key={'ativo'}
-                                align={'center'}
-                                style={{ maxWidth: 80 }}
-                            >
-                                Ativo
-                            </TableCell>
-
-                            <TableCell
-                                key={'acoes'}
-                                align={'right'}
-                                style={{ minWidth: 100 }}
-                            >
-                                Ações
-                            </TableCell>
+                            
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {
-                            brands.map((brand, index) => (
+                            rules.map((rule, index) => (
                                 <TableRow hover role="checkbox" tabIndex={-1} key={index}>
                                     
                                     <TableCell
@@ -272,17 +250,9 @@ export default function StickyHeadTable() {
                                         align={'left'}
                                         style={{ minWidth: 200 }}
                                     >
-                                        {brand.name}
+                                        {rule.description}
                                     </TableCell>
-                                    <TableCell
-                                        key={'ativo'}
-                                        align={'center'}
-                                        style={{ maxWidth: 80 }}
-                                    >
-                                        <Checkbox disabled checked={brand.active} />
                                     
-                                        
-                                    </TableCell>
                                     <TableCell
                                         key={'createdDate'}
                                         align={'right'}
@@ -292,22 +262,17 @@ export default function StickyHeadTable() {
                                                 fontSize='medium' 
                                                 sx={{cursor:'pointer'}}
                                                 onClick={() =>handleEdit({
-                                                    idBrand: brand.idBrand,
-                                                    name: brand.name,
-                                                    active: brand.active,
-                                                    createdId: 0,
-                                                    updatedId: null
+                                                    idRule: rule.idRule,
+                                                    description: rule.description,
+                                                    
                                                   })}
                                             /> &nbsp;                                             
                                             <DeleteIcon 
                                                 fontSize='medium' 
                                                 sx={{cursor:'pointer'}}
                                                 onClick={() =>handleDelete({
-                                                    idBrand: brand.idBrand,
-                                                    name: brand.name,
-                                                    active: brand.active,
-                                                    createdId: 0,
-                                                    updatedId: null
+                                                    idRule: rule.idRule,
+                                                    description: rule.description,
                                                   })}
                                             /> 
                                     </TableCell>
@@ -344,43 +309,27 @@ export default function StickyHeadTable() {
                     <Grid item xs={12} sm={6}>
                         <FormControl fullWidth sx={{ mb: 4 }}>
                             <Controller
-                                name='name'
+                                name='description'
                                 control={control}
                                 rules={{ required: true }}
                                 render={({ field: { value, onChange, onBlur } }) => (
                                     <TextField
                                         autoFocus
-                                        label='Nome da Marca'
+                                        label='Regra'
                                         value={value}
                                         onBlur={onBlur}
                                         onChange={onChange}
-                                        error={Boolean(errors.name)}
-                                        placeholder='Nome da Marca'
+                                        error={Boolean(errors.description)}
+                                        placeholder='Regra'
                                         inputProps={{ maxLength: 100 }}
                                     />
                                 )}
                             />
-                            {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
+                            {errors.description && <FormHelperText sx={{ color: 'error.main' }}>{errors.description.message}</FormHelperText>}
                         </FormControl>
 
                     </Grid>
-                    <Grid item xs={12} sm={6}>
-
-                        <FormControl fullWidth sx={{ mb: 4 }}>
-                            <Controller
-                                name='active'
-                                control={control}
-                                rules={{ required: true }}
-                                render={({ field: { value, onChange} }) => (
-                                        <FormControlLabel
-                                            control={<Switch checked={value} onChange={onChange} />}
-                                            label="Ativo"
-                                        />
-                                )}
-                            />
-                            {errors.active && <FormHelperText sx={{ color: 'error.main' }}>{errors.active.message}</FormHelperText>}
-                        </FormControl>
-                    </Grid>
+                    
                     <Grid item xs={12} sm={6}>
 
                     </Grid>

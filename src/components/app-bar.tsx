@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useRouter } from 'next/router'
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -16,7 +17,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { deepPurple } from '@mui/material/colors';
 import { getInitials } from '@/utils/get-initials';
 
-const pages = ['Marcas', 'Categorias', 'Tamanhos', 'Produtos',];
+const pages = [
+  {title: 'Marcas', url:'brand' },
+  {title: 'Categorias', url:'category' },
+  {title: 'Tamanhos', url:'size' },
+  {title: 'Produtos', url:'product' },
+  {title: 'Funcionarios', url:'staff' },
+  {title: 'Grupo', url:'group' },
+];
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
 
@@ -40,6 +48,8 @@ export default function AppBarComponent() {
     setAnchorElUser(null);
   };
 
+  const router = useRouter()
+
   return (
     <AppBar position="static">
       <Container maxWidth="xl">
@@ -62,7 +72,7 @@ export default function AppBarComponent() {
           >
             LOGO
           </Typography>
-
+          
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
             <IconButton
               size="large"
@@ -74,6 +84,7 @@ export default function AppBarComponent() {
             >
               <MenuIcon />
             </IconButton>
+            
             <Menu
               id="menu-appbar"
               anchorEl={anchorElNav}
@@ -93,12 +104,14 @@ export default function AppBarComponent() {
               }}
             >
               {pages.map((page) => (
-                <MenuItem key={page} onClick={handleCloseNavMenu}>
-                  <Typography textAlign="center">{page}</Typography>
+                <MenuItem key={page.url} onClick={()=> router.push(`/${page.url}`)}>
+                  <Typography textAlign="center">{page.title}</Typography>
                 </MenuItem>
               ))}
             </Menu>
+            
           </Box>
+          
           <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
           <Typography
             variant="h5"
@@ -121,11 +134,11 @@ export default function AppBarComponent() {
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
             {pages.map((page) => (
               <Button
-                key={page}
-                onClick={handleCloseNavMenu}
+                key={page.url}
+                onClick={()=> router.push(`/${page.url}`)}
                 sx={{ my: 2, color: 'white', display: 'block' }}
               >
-                {page}
+                {page.title}
               </Button>
             ))}
           </Box>

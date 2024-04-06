@@ -1,5 +1,6 @@
 import * as React from 'react';
 import Paper from '@mui/material/Paper';
+import LinearProgress from '@mui/material/LinearProgress';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -8,7 +9,7 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Grid from '@mui/material/Grid';
-import { Button, Dialog, DialogActions, DialogContent, FormControl, FormControlLabel, FormHelperText, InputLabel, MenuItem, Select, Switch, Typography } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, DialogContent, FormControl, FormControlLabel, FormHelperText, InputLabel, MenuItem, Select, Switch, Typography } from '@mui/material';
 import TextField from '@mui/material/TextField';
 import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';
@@ -40,6 +41,7 @@ export interface DataProduct {
 export default function StickyHeadTable() {
   //const defaultValues: Data[] = []
 
+  const [loading, setLoading] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   const [snackMessage, setSnackMessage] = React.useState('');
   const [reload, setReload] = React.useState(false);
@@ -68,7 +70,7 @@ export default function StickyHeadTable() {
     React.useEffect (()=>{
         const loadData = async () =>{
             try{
-                console.log('load')
+                setLoading(true)
                 const response = await http.post('service-product/product/list', {
                     name: search,
                     items: rowsPerPage,
@@ -93,6 +95,7 @@ export default function StickyHeadTable() {
                 console.log(error)
                 setSnackMessage("Não foi possível processar a solicitação.")
             }
+            setLoading(false)
         }
         loadData()
     },[page, reload])
@@ -166,6 +169,11 @@ export default function StickyHeadTable() {
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+        { loading &&
+            <Box sx={{ width: '100%' }}>
+              <LinearProgress color="secondary" />
+            </Box> 
+        }
         <Grid container spacing={2}>
             <Grid item xs={12}>
                 <Grid container padding={2} spacing={2}>
@@ -385,6 +393,7 @@ export default function StickyHeadTable() {
             onClose={()=> setSnackMessage('')}
             message={snackMessage}
             key={'snack'}
+            autoHideDuration={5000}
         />       
     </Paper>
   );

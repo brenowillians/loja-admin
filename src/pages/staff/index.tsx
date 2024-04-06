@@ -20,17 +20,29 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import Checkbox from '@mui/material/Checkbox';
 import Snackbar from '@mui/material/Snackbar';
 
-interface Data {
-    idSize?: number;
+interface DataStaff {
+    idStaff?: number;
     name: string ;
+    login: string;
     active: boolean ;
-    createdId: number;
-    updatedId: number | null;
+    locked: boolean;
+    sector: string;
+    role: string;
+    ctps: string;
+    phone: string;
+    mobile: string;
 }
 
 const schema = yup.object().shape({
-    name: yup.string().required("O Nome do Banco não pode estar em branco."),
-    active: yup.boolean()
+    name: yup.string().required("O Nome não pode estar em branco."),
+    login: yup.string().required("O Login não pode estar em branco."),
+    active: yup.boolean(),
+    locked: yup.boolean(),
+    sector: yup.string().required("O Setor  não pode estar em branco."),
+    role: yup.string().required("A Função  não pode estar em branco."),
+    ctps: yup.string(),//.required("A imagem do  não pode estar em branco."),
+    phone: yup.string(),//.required("A imagem do  não pode estar em branco."),
+    mobile: yup.string().required("O Celular não pode estar em branco."),
 })
 //yup:controla as ações individuais no formulário de cada função (cada botão de switch, o que for ou não preenchido etc)
 
@@ -43,20 +55,33 @@ export default function StickyHeadTable() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [search, setSearch] = React.useState('');
-  const [sizes, setSizes] =React.useState<Data[]>([])
-  const [size, setSize] =React.useState<Data>({
-    idSize:0,
-    name: '',
-    active: false,
-    createdId: 0,
-    updatedId: null
+  const [staffs, setStaffs] =React.useState<DataStaff[]>([])
+  const [staff, setStaff] =React.useState<DataStaff>({
+    idStaff: 0,
+    name: '' ,
+    login: '',
+    active: false ,
+    locked: false,
+    sector: '',
+    role: '',
+    ctps: '',
+    phone: '',
+    mobile: ''
   })
   const [total, setTotal] = React.useState(0);
  
 
   const defaultValues = {
-    name: size.name,
-    active: size.active
+    name: staff.name,
+    login: staff.login,
+    active: staff.active,
+    locked: staff.locked,
+    sector: staff.sector,
+    role: staff.role,
+    ctps: staff.ctps,
+    phone: staff.phone,
+    mobile: staff.mobile
+    
     }
 
     const {
@@ -71,12 +96,21 @@ export default function StickyHeadTable() {
     })
 
 
+
+
     React.useEffect(()=>{
         reset({
-            name: size.name,
-            active: size.active
+            name: staff.name,
+            login: staff.login,
+            active: staff.active,
+            locked: staff.locked,
+            sector: staff.sector,
+            role: staff.role,
+            ctps: staff.ctps,
+            phone: staff.phone,
+            mobile: staff.mobile
         })
-    },[size])
+    },[staff])
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -91,15 +125,15 @@ export default function StickyHeadTable() {
 //função que estabele quantos produtos serão listados na pagina
 
 
-  const handleEdit = (sizeParameter: Data) => {
+  const handleEdit = (staffParameter: DataStaff) => {
     //função que abre o Dialog de criação / edição de cadastros
-    setSize(sizeParameter)
+    setStaff(staffParameter)
     setOpen(true)
   };
 
-  const handleDelete = async (sizeParameter: Data) => {
+  const handleDelete = async (staffParameter: DataStaff) => {
     try{
-        await http.delete(`service-product/size/${sizeParameter.idSize}`)
+        await http.delete(`service-user/staff/${staffParameter.idStaff}`)
         setReload(!reload)
         setSnackMessage("Registro excluído com sucesso.")
     }
@@ -143,16 +177,16 @@ export default function StickyHeadTable() {
   const onSubmit =  async(data: any) =>{
     try{
 
-        let modifiedSize={...size,...data}
+        let modifiedStaff={...staff,...data}
 
-      setSize(modifiedSize)
+      setStaff(modifiedStaff)
   
-      if(modifiedSize.idSize){ //UPDATE
-        await http.patch(`service-product/size/${modifiedSize.idSize}`,modifiedSize)
+      if(modifiedStaff.idStaff){ //UPDATE
+        await http.patch(`service-user/staff/${modifiedStaff.idStaff}`,modifiedStaff)
         setSnackMessage("Registro atualizado com sucesso.")
       }
       else{ //INSERT
-        await http.post(`service-product/size/`,modifiedSize)
+        await http.post(`service-user/staff/`,modifiedStaff)
         setSnackMessage("Registro criado com sucesso.")
       }
       setOpen(false)
@@ -169,7 +203,7 @@ export default function StickyHeadTable() {
     const loadData = async () =>{
         try{
             console.log('load')
-            const response = await http.post('service-product/size/list', {
+            const response = await http.post('service-user/staff/list', {
                 name: search,
                 items: rowsPerPage,
                 page: page+1,
@@ -177,7 +211,7 @@ export default function StickyHeadTable() {
             })
             if(response.data.data?.result){
                 if(Array.isArray(response.data.data.result)){
-                    setSizes(response.data.data.result)
+                    setStaffs(response.data.data.result)
                     setTotal(response.data.data.total)
                 }
                 else{
@@ -218,10 +252,15 @@ export default function StickyHeadTable() {
                     <Grid item xs={2}>
                         <Button type='submit' 
                             onClick={() =>handleEdit({
-                                name: '',
-                                active: false,
-                                createdId: 0,
-                                updatedId: null
+                                name: '' ,
+                                login: '',
+                                active: false ,
+                                locked: false,
+                                sector: '',
+                                role: '',
+                                ctps: '',
+                                phone: '',
+                                mobile: ''
                               })} 
                             variant='contained' 
                             sx={{ mr: 1, mt:3 }}
@@ -238,12 +277,21 @@ export default function StickyHeadTable() {
                     <TableHead>
                         <TableRow>
                             <TableCell
-                                key={'descricao'}
+                                key={'staff'}
                                 align={'left'}
                                 style={{ minWidth: 200 }}
                             >
-                                Tamanho do Produto
+                                Nome
                             </TableCell>
+
+                            <TableCell
+                                key={'login'}
+                                align={'left'}
+                                style={{ minWidth: 200 }}
+                            >
+                                Login
+                            </TableCell>
+                            
 
                             <TableCell
                                 key={'ativo'}
@@ -254,34 +302,122 @@ export default function StickyHeadTable() {
                             </TableCell>
 
                             <TableCell
-                                key={'acoes'}
+                                key={'bloqueado'}
+                                align={'center'}
+                                style={{ maxWidth: 80 }}
+                            >
+                                Bloqueado
+                            </TableCell>
+
+                            <TableCell
+                                key={'setor'}
+                                align={'left'}
+                                style={{ minWidth: 200 }}
+                            >
+                                Setor
+                            </TableCell>
+                            <TableCell
+                                key={'role'}
+                                align={'left'}
+                                style={{ minWidth: 200 }}
+                            >
+                                Função
+                            </TableCell>
+
+                            
+                            <TableCell
+                                key={'celular'}
                                 align={'right'}
                                 style={{ minWidth: 100 }}
                             >
-                                Ações
+                                Celular
                             </TableCell>
+                            
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {
-                            sizes.map((size, index) => (
+                            staffs.map((staff, index) => (
                                 <TableRow hover role="checkbox" tabIndex={-1} key={index}>
                                     
                                     <TableCell
-                                        key={'descricao'}
+                                        key={'staff'}
                                         align={'left'}
                                         style={{ minWidth: 200 }}
                                     >
-                                        {size.name}
+                                        {staff.name}
                                     </TableCell>
+
+
+                                    <TableCell
+                                        key={'login'}
+                                        align={'left'}
+                                        style={{ minWidth: 200 }}
+                                    >
+                                        {staff.login}
+                                    </TableCell>
+
+                                
                                     <TableCell
                                         key={'ativo'}
                                         align={'center'}
                                         style={{ maxWidth: 80 }}
                                     >
-                                        <Checkbox disabled checked={size.active} />
+                                        <Checkbox disabled checked={staff.active} />
                                     
                                         
+                                    </TableCell>
+
+                                    <TableCell
+                                        key={'bloqueado'}
+                                        align={'center'}
+                                        style={{ maxWidth: 80 }}
+                                    >
+                                        <Checkbox disabled checked={staff.locked} />
+                                    
+                                        
+                                    </TableCell>
+
+                                    <TableCell
+                                        key={'setor'}
+                                        align={'left'}
+                                        style={{ minWidth: 200 }}
+                                    >
+                                        {staff.sector}
+                                    </TableCell>
+
+                                    <TableCell
+                                        key={'função'}
+                                        align={'left'}
+                                        style={{ minWidth: 200 }}
+                                    >
+                                        {staff.role}
+                                    </TableCell>
+
+
+                                    
+                                    <TableCell
+                                        key={'ctps'}
+                                        align={'right'}
+                                        style={{ minWidth: 100 }}
+                                    >
+                                        {staff.ctps}
+                                    </TableCell>
+
+                                    <TableCell
+                                        key={'telefone'}
+                                        align={'right'}
+                                        style={{ minWidth: 100 }}
+                                    >
+                                        {staff.phone}
+                                    </TableCell>
+
+                                    <TableCell
+                                        key={'celular'}
+                                        align={'right'}
+                                        style={{ minWidth: 100 }}
+                                    >
+                                        {staff.mobile}
                                     </TableCell>
                                     <TableCell
                                         key={'createdDate'}
@@ -292,22 +428,32 @@ export default function StickyHeadTable() {
                                                 fontSize='medium' 
                                                 sx={{cursor:'pointer'}}
                                                 onClick={() =>handleEdit({
-                                                    idSize: size.idSize,
-                                                    name: size.name,
-                                                    active: size.active,
-                                                    createdId: 0,
-                                                    updatedId: null
+                                                    idStaff:staff.idStaff,
+                                                    name: staff.name,
+                                                    login: staff.login,
+                                                    active: staff.active,
+                                                    locked: staff.locked,
+                                                    sector: staff.sector,
+                                                    role: staff.role,
+                                                    ctps: staff.ctps,
+                                                    phone: staff.phone,
+                                                    mobile: staff.mobile
                                                   })}
                                             /> &nbsp;                                             
                                             <DeleteIcon 
                                                 fontSize='medium' 
                                                 sx={{cursor:'pointer'}}
                                                 onClick={() =>handleDelete({
-                                                    idSize: size.idSize,
-                                                    name: size.name,
-                                                    active: size.active,
-                                                    createdId: 0,
-                                                    updatedId: null
+                                                    idStaff:staff.idStaff,
+                                                    name: staff.name,
+                                                    login: staff.login,
+                                                   active: staff.active,
+                                                    locked: staff.locked,
+                                                    sector: staff.sector,
+                                                    role: staff.role,
+                                                    ctps: staff.ctps,
+                                                    phone: staff.phone,
+                                                    mobile: staff.mobile
                                                   })}
                                             /> 
                                     </TableCell>
@@ -350,17 +496,143 @@ export default function StickyHeadTable() {
                                 render={({ field: { value, onChange, onBlur } }) => (
                                     <TextField
                                         autoFocus
-                                        label='Tipos de Tamanho'
+                                        label='Nome'
                                         value={value}
                                         onBlur={onBlur}
                                         onChange={onChange}
                                         error={Boolean(errors.name)}
-                                        placeholder='Tipos de Tamanho'
+                                        placeholder='Nome'
                                         inputProps={{ maxLength: 100 }}
                                     />
                                 )}
                             />
                             {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
+                        </FormControl>
+
+                        <FormControl fullWidth sx={{ mb: 4 }}>
+                            <Controller
+                                name='login'
+                                control={control}
+                                rules={{ required: true }}
+                                render={({ field: { value, onChange, onBlur } }) => (
+                                    <TextField
+                                        autoFocus
+                                        label='Login'
+                                        value={value}
+                                        onBlur={onBlur}
+                                        onChange={onChange}
+                                        error={Boolean(errors.login)}
+                                        placeholder='Login'
+                                        inputProps={{ maxLength: 100 }}
+                                    />
+                                )}
+                            />
+                            {errors.login && <FormHelperText sx={{ color: 'error.main' }}>{errors.login.message}</FormHelperText>}
+                        </FormControl>
+                        
+                        <FormControl fullWidth sx={{ mb: 4 }}>
+                            <Controller
+                                name='sector'
+                                control={control}
+                                rules={{ required: true }}
+                                render={({ field: { value, onChange, onBlur } }) => (
+                                    <TextField
+                                        autoFocus
+                                        label='Setor'
+                                        value={value}
+                                        onBlur={onBlur}
+                                        onChange={onChange}
+                                        error={Boolean(errors.sector)}
+                                        placeholder='Setor'
+                                        inputProps={{ maxLength: 100 }}
+                                    />
+                                )}
+                            />
+                            {errors.sector && <FormHelperText sx={{ color: 'error.main' }}>{errors.sector.message}</FormHelperText>}
+                        </FormControl>
+                        <FormControl fullWidth sx={{ mb: 4 }}>
+                            <Controller
+                                name='role'
+                                control={control}
+                                rules={{ required: true }}
+                                render={({ field: { value, onChange, onBlur } }) => (
+                                    <TextField
+                                        autoFocus
+                                        label='Função'
+                                        value={value}
+                                        onBlur={onBlur}
+                                        onChange={onChange}
+                                        error={Boolean(errors.role)}
+                                        placeholder='Função'
+                                        inputProps={{ maxLength: 100 }}
+                                    />
+                                )}
+                            />
+                            {errors.role && <FormHelperText sx={{ color: 'error.main' }}>{errors.role.message}</FormHelperText>}
+                        </FormControl>
+                        
+                        <FormControl fullWidth sx={{ mb: 4 }}>
+                            <Controller
+                                name='ctps'
+                                control={control}
+                                rules={{ required: true }}
+                                render={({ field: { value, onChange, onBlur } }) => (
+                                    <TextField
+                                        autoFocus
+                                        label='Ctps'
+                                        value={value}
+                                        onBlur={onBlur}
+                                        onChange={onChange}
+                                        error={Boolean(errors.ctps)}
+                                        placeholder='Ctps'
+                                        inputProps={{ maxLength: 100 }}
+                                    />
+                                )}
+                            />
+                            {errors.ctps && <FormHelperText sx={{ color: 'error.main' }}>{errors.ctps.message}</FormHelperText>}
+                        </FormControl>
+                                        
+                    
+                        <FormControl fullWidth sx={{ mb: 4 }}>
+                            <Controller
+                                name='phone'
+                                control={control}
+                                rules={{ required: true }}
+                                render={({ field: { value, onChange, onBlur } }) => (
+                                    <TextField
+                                        autoFocus
+                                        label='Telefone'
+                                        value={value}
+                                        onBlur={onBlur}
+                                        onChange={onChange}
+                                        error={Boolean(errors.phone)}
+                                        placeholder='Telefone'
+                                        inputProps={{ maxLength: 100 }}
+                                    />
+                                )}
+                            />
+                            {errors.phone && <FormHelperText sx={{ color: 'error.main' }}>{errors.phone.message}</FormHelperText>}
+                        </FormControl>
+
+                        <FormControl fullWidth sx={{ mb: 4 }}>
+                            <Controller
+                                name='mobile'
+                                control={control}
+                                rules={{ required: true }}
+                                render={({ field: { value, onChange, onBlur } }) => (
+                                    <TextField
+                                        autoFocus
+                                        label='Celular'
+                                        value={value}
+                                        onBlur={onBlur}
+                                        onChange={onChange}
+                                        error={Boolean(errors.mobile)}
+                                        placeholder='Celular'
+                                        inputProps={{ maxLength: 100 }}
+                                    />
+                                )}
+                            />
+                            {errors.mobile && <FormHelperText sx={{ color: 'error.main' }}>{errors.mobile.message}</FormHelperText>}
                         </FormControl>
 
                     </Grid>
@@ -379,6 +651,20 @@ export default function StickyHeadTable() {
                                 )}
                             />
                             {errors.active && <FormHelperText sx={{ color: 'error.main' }}>{errors.active.message}</FormHelperText>}
+                        </FormControl>
+                        <FormControl fullWidth sx={{ mb: 4 }}>
+                            <Controller
+                                name='locked'
+                                control={control}
+                                rules={{ required: true }}
+                                render={({ field: { value, onChange} }) => (
+                                        <FormControlLabel
+                                            control={<Switch checked={value} onChange={onChange} />}
+                                            label="Bloqueado"
+                                        />
+                                )}
+                            />
+                            {errors.locked && <FormHelperText sx={{ color: 'error.main' }}>{errors.locked.message}</FormHelperText>}
                         </FormControl>
                     </Grid>
                     <Grid item xs={12} sm={6}>

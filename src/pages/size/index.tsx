@@ -20,7 +20,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import Checkbox from '@mui/material/Checkbox';
 import Snackbar from '@mui/material/Snackbar';
 
-interface Data {
+interface DataSize {
     idSize?: number;
     name: string ;
     active: boolean ;
@@ -43,8 +43,8 @@ export default function StickyHeadTable() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [search, setSearch] = React.useState('');
-  const [sizes, setSizes] =React.useState<Data[]>([])
-  const [size, setSize] =React.useState<Data>({
+  const [sizes, setSizes] =React.useState<DataSize[]>([])
+  const [size, setSize] =React.useState<DataSize>({
     idSize:0,
     name: '',
     active: false,
@@ -91,13 +91,13 @@ export default function StickyHeadTable() {
 //função que estabele quantos produtos serão listados na pagina
 
 
-  const handleEdit = (sizeParameter: Data) => {
+  const handleEdit = (sizeParameter: DataSize) => {
     //função que abre o Dialog de criação / edição de cadastros
     setSize(sizeParameter)
     setOpen(true)
   };
 
-  const handleDelete = async (sizeParameter: Data) => {
+  const handleDelete = async (sizeParameter: DataSize) => {
     try{
         await http.delete(`service-product/size/${sizeParameter.idSize}`)
         setReload(!reload)

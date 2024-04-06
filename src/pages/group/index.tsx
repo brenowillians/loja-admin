@@ -20,17 +20,15 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import Checkbox from '@mui/material/Checkbox';
 import Snackbar from '@mui/material/Snackbar';
 
-interface DataBrand {
-    idBrand?: number;
+interface DataGroup {
+    idGroup?: number;
     name: string ;
-    active: boolean ;
-    createdId: number;
-    updatedId: number | null;
+    isAdmin: boolean ;
 }
 
 const schema = yup.object().shape({
-    name: yup.string().required("O Nome do Banco não pode estar em branco."),
-    active: yup.boolean()
+    name: yup.string().required("O Nome não pode estar em branco."),
+    isAdmin: yup.boolean().required("O campo não pode estar em branco."),
 })
 //yup:controla as ações individuais no formulário de cada função (cada botão de switch, o que for ou não preenchido etc)
 
@@ -43,20 +41,18 @@ export default function StickyHeadTable() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [search, setSearch] = React.useState('');
-  const [brands, setBrands] =React.useState<DataBrand[]>([])
-  const [brand, setBrand] =React.useState<DataBrand>({
-    idBrand:0,
+  const [groups, setGroups] =React.useState<DataGroup[]>([])
+  const [group, setGroup] =React.useState<DataGroup>({
+    idGroup:0,
     name: '',
-    active: false,
-    createdId: 0,
-    updatedId: null
+    isAdmin: false,
   })
   const [total, setTotal] = React.useState(0);
  
 
   const defaultValues = {
-    name: brand.name,
-    active: brand.active
+    name: group.name,
+    isAdmin: group.isAdmin
     }
 
     const {
@@ -73,10 +69,10 @@ export default function StickyHeadTable() {
 
     React.useEffect(()=>{
         reset({
-            name: brand.name,
-            active: brand.active
+            name: group.name,
+            isAdmin: group.isAdmin
         })
-    },[brand])
+    },[group])
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -91,21 +87,21 @@ export default function StickyHeadTable() {
 //função que estabele quantos produtos serão listados na pagina
 
 
-  const handleEdit = (brandParameter: DataBrand) => {
+  const handleEdit = (groupParameter: DataGroup) => {
     //função que abre o Dialog de criação / edição de cadastros
-    setBrand(brandParameter)
+    setGroup(groupParameter)
     setOpen(true)
   };
 
-  const handleDelete = async (brandParameter: DataBrand) => {
+  const handleDelete = async (groupParameter: DataGroup) => {
     try{
-        await http.delete(`service-product/brand/${brandParameter.idBrand}`)
+        await http.delete(`service-user/group/${groupParameter.idGroup}`)
         setReload(!reload)
         setSnackMessage("Registro excluído com sucesso.")
     }
     catch(error){
         console.log(error);
-        setSnackMessage("Não foi possível excluir a Marca")
+        setSnackMessage("Não foi possível excluir o Tamanho")
     }
 
   };
@@ -143,16 +139,16 @@ export default function StickyHeadTable() {
   const onSubmit =  async(data: any) =>{
     try{
 
-        let modifiedBrand={...brand,...data}
+        let modifiedGroup={...group,...data}
 
-      setBrand(modifiedBrand)
+      setGroup(modifiedGroup)
   
-      if(modifiedBrand.idBrand){ //UPDATE
-        await http.patch(`service-product/brand/${modifiedBrand.idBrand}`,modifiedBrand)
+      if(modifiedGroup.idGroup){ //UPDATE
+        await http.patch(`service-user/group/${modifiedGroup.idGroup}`,modifiedGroup)
         setSnackMessage("Registro atualizado com sucesso.")
       }
       else{ //INSERT
-        await http.post(`service-product/brand/`,modifiedBrand)
+        await http.post(`service-user/group/`,modifiedGroup)
         setSnackMessage("Registro criado com sucesso.")
       }
       setOpen(false)
@@ -163,13 +159,13 @@ export default function StickyHeadTable() {
       setSnackMessage("Não foi possível processar a solicitação.")
     }
   }
-  //função que faz subir e registrar a brand, seja criando uma nova, seja editando uma já criada.
+  //função que faz subir e registrar o tamanho, seja criando uma nova, seja editando uma já criada.
 
   React.useEffect (()=>{
     const loadData = async () =>{
         try{
             console.log('load')
-            const response = await http.post('service-product/brand/list', {
+            const response = await http.post('service-user/group/list', {
                 name: search,
                 items: rowsPerPage,
                 page: page+1,
@@ -177,7 +173,7 @@ export default function StickyHeadTable() {
             })
             if(response.data.data?.result){
                 if(Array.isArray(response.data.data.result)){
-                    setBrands(response.data.data.result)
+                    setGroups(response.data.data.result)
                     setTotal(response.data.data.total)
                 }
                 else{
@@ -219,9 +215,7 @@ export default function StickyHeadTable() {
                         <Button type='submit' 
                             onClick={() =>handleEdit({
                                 name: '',
-                                active: false,
-                                createdId: 0,
-                                updatedId: null
+                                isAdmin: false 
                               })} 
                             variant='contained' 
                             sx={{ mr: 1, mt:3 }}
@@ -242,7 +236,7 @@ export default function StickyHeadTable() {
                                 align={'left'}
                                 style={{ minWidth: 200 }}
                             >
-                                Marca do Produto
+                                Nome
                             </TableCell>
 
                             <TableCell
@@ -250,36 +244,28 @@ export default function StickyHeadTable() {
                                 align={'center'}
                                 style={{ maxWidth: 80 }}
                             >
-                                Ativo
-                            </TableCell>
-
-                            <TableCell
-                                key={'acoes'}
-                                align={'right'}
-                                style={{ minWidth: 100 }}
-                            >
-                                Ações
+                                Cargo Administrativo
                             </TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {
-                            brands.map((brand, index) => (
+                            groups.map((group, index) => (
                                 <TableRow hover role="checkbox" tabIndex={-1} key={index}>
                                     
                                     <TableCell
-                                        key={'descricao'}
+                                        key={'nome'}
                                         align={'left'}
                                         style={{ minWidth: 200 }}
                                     >
-                                        {brand.name}
+                                        {group.name}
                                     </TableCell>
                                     <TableCell
-                                        key={'ativo'}
+                                        key={'isAdmin'}
                                         align={'center'}
                                         style={{ maxWidth: 80 }}
                                     >
-                                        <Checkbox disabled checked={brand.active} />
+                                        <Checkbox disabled checked={group.isAdmin} />
                                     
                                         
                                     </TableCell>
@@ -292,22 +278,20 @@ export default function StickyHeadTable() {
                                                 fontSize='medium' 
                                                 sx={{cursor:'pointer'}}
                                                 onClick={() =>handleEdit({
-                                                    idBrand: brand.idBrand,
-                                                    name: brand.name,
-                                                    active: brand.active,
-                                                    createdId: 0,
-                                                    updatedId: null
+                                                    idGroup: group.idGroup,
+                                                    name: group.name,
+                                                    isAdmin: group.isAdmin
+                                                    
                                                   })}
                                             /> &nbsp;                                             
                                             <DeleteIcon 
                                                 fontSize='medium' 
                                                 sx={{cursor:'pointer'}}
                                                 onClick={() =>handleDelete({
-                                                    idBrand: brand.idBrand,
-                                                    name: brand.name,
-                                                    active: brand.active,
-                                                    createdId: 0,
-                                                    updatedId: null
+                                                    idGroup: group.idGroup,
+                                                    name: group.name,
+                                                    isAdmin: group.isAdmin
+                                                    
                                                   })}
                                             /> 
                                     </TableCell>
@@ -350,12 +334,12 @@ export default function StickyHeadTable() {
                                 render={({ field: { value, onChange, onBlur } }) => (
                                     <TextField
                                         autoFocus
-                                        label='Nome da Marca'
+                                        label='Nome'
                                         value={value}
                                         onBlur={onBlur}
                                         onChange={onChange}
                                         error={Boolean(errors.name)}
-                                        placeholder='Nome da Marca'
+                                        placeholder='Nome'
                                         inputProps={{ maxLength: 100 }}
                                     />
                                 )}
@@ -368,17 +352,17 @@ export default function StickyHeadTable() {
 
                         <FormControl fullWidth sx={{ mb: 4 }}>
                             <Controller
-                                name='active'
+                                name='isAdmin'
                                 control={control}
                                 rules={{ required: true }}
                                 render={({ field: { value, onChange} }) => (
                                         <FormControlLabel
                                             control={<Switch checked={value} onChange={onChange} />}
-                                            label="Ativo"
+                                            label="Cargo Administrativo"
                                         />
                                 )}
                             />
-                            {errors.active && <FormHelperText sx={{ color: 'error.main' }}>{errors.active.message}</FormHelperText>}
+                            {errors.isAdmin && <FormHelperText sx={{ color: 'error.main' }}>{errors.isAdmin.message}</FormHelperText>}
                         </FormControl>
                     </Grid>
                     <Grid item xs={12} sm={6}>

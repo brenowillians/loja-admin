@@ -1,4 +1,4 @@
-import { Button, Checkbox, Dialog, DialogActions, DialogContent, FormControl, FormControlLabel, FormHelperText, Grid, InputLabel, MenuItem, Select, Switch, TextField } from "@mui/material";
+import { Box, Button, Checkbox, CircularProgress, Dialog, DialogActions, DialogContent, FormControl, FormControlLabel, FormHelperText, Grid, InputLabel, MenuItem, Select, Switch, TextField } from "@mui/material";
 import React, { Fragment } from "react";
 import * as yup from 'yup'
 import { useForm, Controller } from 'react-hook-form'
@@ -69,6 +69,8 @@ const schema = yup.object().shape({
 export default function ViewProductComponent(props: ViewProductProps) {
     const { open, reload, product, setSnackMessage, setOpen, setReload } = props
 
+    const [loading, setLoading] = React.useState(false);
+    const [saving, setSaving] = React.useState(false);
     const [categories, setCategories] =React.useState<DataCategory[]>([])
     const [brands, setBrands] =React.useState<DataBrand[]>([])
     const [sizes, setSizes] =React.useState<DataSize[]>([])
@@ -153,7 +155,9 @@ export default function ViewProductComponent(props: ViewProductProps) {
         })
 
         const loadSize = async () =>{
+            setLoading(true)
             try{
+                setSizes([])
                 if(product.idProduct){
                     const responseProductSize = await http.post('service-product/product-size/list', {
                         idProduct: product.idProduct,
@@ -201,14 +205,15 @@ export default function ViewProductComponent(props: ViewProductProps) {
             catch(error){
 
             }
+            setLoading(false)
         }
         loadSize()
     },[product])
     
 
     const onSubmit =  async(data: any) =>{
+        setSaving(true)
         try{
-    
             let modifiedProduct={...product,...data}
     
           //setProduct(modifiedProduct)
@@ -263,6 +268,7 @@ export default function ViewProductComponent(props: ViewProductProps) {
           console.log(error)
           setSnackMessage("Não foi possível processar a solicitação.")
         }
+        setSaving(false)
     }
     //função que faz subir e registrar o produto, seja criando uma nova, seja editando uma já criada.
 
@@ -494,6 +500,11 @@ export default function ViewProductComponent(props: ViewProductProps) {
                     </Grid>
 
                     <Grid item xs={12} sm={6}>
+                        { loading &&
+                            <Box sx={{ width: '100%' }}>
+                                <CircularProgress color="secondary" />
+                            </Box> 
+                        }
                         {
                             sizes.map((size, index) =>{
                                 return(
@@ -515,7 +526,12 @@ export default function ViewProductComponent(props: ViewProductProps) {
             </DialogContent>
             <DialogActions sx={{ justifyContent: 'center' }}>
                 <Button type='submit' variant='contained' sx={{ mr: 1, mt:3 }}>
-                    Salvar
+                { saving ? 
+
+                    <CircularProgress size={20} color="inherit" />
+                :
+                    'Salvar'
+                }    
                 </Button>
                 <Button variant='outlined' sx={{ mr: 1, mt:3 }} color='secondary' onClick={() =>setOpen(false)}>
                     Fechar
