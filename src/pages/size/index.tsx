@@ -8,7 +8,7 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Grid from '@mui/material/Grid';
-import { Button, Dialog, DialogActions, DialogContent, FormControl, FormControlLabel, FormHelperText, Switch, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, FormControl, FormControlLabel, FormHelperText, LinearProgress, Switch, Typography } from '@mui/material';
 import TextField from '@mui/material/TextField';
 import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';
@@ -37,6 +37,8 @@ const schema = yup.object().shape({
 export default function StickyHeadTable() {
   //const defaultValues: Data[] = []
 
+  const [saving, setSaving] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   const [snackMessage, setSnackMessage] = React.useState('');
   const [reload, setReload] = React.useState(false);
@@ -141,6 +143,7 @@ export default function StickyHeadTable() {
   }
 
   const onSubmit =  async(data: any) =>{
+    setSaving(true)
     try{
 
         let modifiedSize={...size,...data}
@@ -162,11 +165,13 @@ export default function StickyHeadTable() {
       console.log(error)
       setSnackMessage("Não foi possível processar a solicitação.")
     }
+    setSaving(false)
   }
   //função que faz subir e registrar o tamanho, seja criando uma nova, seja editando uma já criada.
 
   React.useEffect (()=>{
     const loadData = async () =>{
+        setLoading(true)
         try{
             console.log('load')
             const response = await http.post('service-product/size/list', {
@@ -193,12 +198,18 @@ export default function StickyHeadTable() {
             console.log(error)
             setSnackMessage("Não foi possível processar a solicitação.")
         }
+        setLoading(false)
     }
     loadData()
   },[page, reload])
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+        { loading &&
+            <Box sx={{ width: '100%' }}>
+              <LinearProgress color="secondary" />
+            </Box> 
+        }
         <Grid container spacing={2}>
             <Grid item xs={12}>
                 <Grid container padding={2} spacing={2}>
@@ -288,7 +299,7 @@ export default function StickyHeadTable() {
                                         align={'right'}
                                         style={{ minWidth: 100 }}
                                     >
-                                            <EditIcon 
+                                            <SearchIcon 
                                                 fontSize='medium' 
                                                 sx={{cursor:'pointer'}}
                                                 onClick={() =>handleEdit({
@@ -388,8 +399,13 @@ export default function StickyHeadTable() {
             
             </DialogContent>
             <DialogActions sx={{ justifyContent: 'center' }}>
-                <Button type='submit' variant='contained' sx={{ mr: 1, mt:3 }}>
-                    Salvar
+            <Button type='submit' variant='contained' sx={{ mr: 1, mt:3 }}>
+                { saving ? 
+
+                    <CircularProgress size={20} color="inherit" />
+                    :
+                    'Salvar'
+                    }  
                 </Button>
                 <Button variant='outlined' sx={{ mr: 1, mt:3 }} color='secondary' onClick={() =>setOpen(false)}>
                     Fechar
@@ -404,6 +420,7 @@ export default function StickyHeadTable() {
             onClose={()=> setSnackMessage('')}
             message={snackMessage}
             key={'snack'}
+            autoHideDuration={5000}
         />       
     </Paper>
   );

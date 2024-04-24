@@ -15,10 +15,12 @@ import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import http from '../../utils/http'
-
+import { useAuth } from '@/hooks/useAuth';
 import Checkbox from '@mui/material/Checkbox';
 import Snackbar from '@mui/material/Snackbar';
 import ViewProductComponent from './components/view';
+import { DataRule } from "@/pages/rule"
+import { DataGroupRule } from '../group/components/view';
 
 
 export interface DataProduct {
@@ -62,21 +64,27 @@ export default function StickyHeadTable() {
     idBrand: 0,
     idCategory: 0
   })
+  const [groupRules, setGroupRules] = React.useState<DataGroupRule[]>([])
+  const [rules, setRules] = React.useState<DataRule[]>([])
+  
   const [total, setTotal] = React.useState(0);
  
-
+  const auth = useAuth()
 
 
     React.useEffect (()=>{
         const loadData = async () =>{
             try{
                 setLoading(true)
+
+
                 const response = await http.post('service-product/product/list', {
                     name: search,
                     items: rowsPerPage,
                     page: page+1,
                     order: {name:"ASC"}
                 })
+                
                 if(response.data.data?.result){
                     if(Array.isArray(response.data.data.result)){
                         setProducts(response.data.data.result)
@@ -98,6 +106,8 @@ export default function StickyHeadTable() {
             setLoading(false)
         }
         loadData()
+
+        
     },[page, reload])
     
 
@@ -322,7 +332,7 @@ export default function StickyHeadTable() {
                                         align={'right'}
                                         style={{ minWidth: 100 }}
                                     >
-                                            <EditIcon 
+                                            <SearchIcon 
                                                 fontSize='medium' 
                                                 sx={{cursor:'pointer'}}
                                                 onClick={() =>handleEdit({
@@ -339,25 +349,28 @@ export default function StickyHeadTable() {
                                                     idBrand: product.idBrand,
                                                     idCategory: product.idCategory
                                                   })}
-                                            /> &nbsp;                                             
-                                            <DeleteIcon 
-                                                fontSize='medium' 
-                                                sx={{cursor:'pointer'}}
-                                                onClick={() =>handleDelete({
-                                                    idProduct: product.idProduct,
-                                                    name: product.name,
-                                                    active: product.active,
-                                                    createdId: 0,
-                                                    updatedId: null,
-                                                    image: product.image ,
-                                                    fullPrice: product.fullPrice,
-                                                    salePrice: product.salePrice,
-                                                    onSale: product.onSale ,
-                                                    description: product.description,
-                                                    idBrand: product.idBrand,
-                                                    idCategory: product.idCategory
-                                                  })}
-                                            /> 
+                                            /> &nbsp; 
+
+                                            { auth.rules?.find(rule => rule?.description == 'Excluir Produtos') || auth.groupAdmin ?                                        
+                                                <DeleteIcon 
+                                                    fontSize='medium' 
+                                                    sx={{cursor:'pointer'}}
+                                                    onClick={() =>handleDelete({
+                                                        idProduct: product.idProduct,
+                                                        name: product.name,
+                                                        active: product.active,
+                                                        createdId: 0,
+                                                        updatedId: null,
+                                                        image: product.image ,
+                                                        fullPrice: product.fullPrice,
+                                                        salePrice: product.salePrice,
+                                                        onSale: product.onSale ,
+                                                        description: product.description,
+                                                        idBrand: product.idBrand,
+                                                        idCategory: product.idCategory
+                                                    })}
+                                                /> 
+                                            :null}
                                     </TableCell>
                                 </TableRow>
 

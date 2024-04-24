@@ -3,21 +3,25 @@ import { AuthValuesType, CallbackType, LoginParams, UserDataType } from "./types
 
 import http from '../utils/http';
 import { useRouter } from 'next/router';
-
+import { DataRule } from "@/pages/rule"
+import {DataGroupRule} from '@/pages/group/components/view'
+import { DataGroup } from '@/pages/group';
 
 const defaultProvider: AuthValuesType = {
+  user: null,
+  setUser: () => null,
 
-    user: null,
-    setUser: () => null,
+  errorMessage: null,
+  setErrorMessage: () => null,
 
-    errorMessage: null,
-    setErrorMessage: () => null,
-    
-    sucessMessage: null,
-    setSucessMessage: () => null,
-  
-    login: () => Promise.resolve(),
-    logout: () => Promise.resolve(),
+  sucessMessage: null,
+  setSucessMessage: () => null,
+
+  login: () => Promise.resolve(),
+  logout: () => Promise.resolve(),
+
+  rules: [],
+  groupAdmin: undefined
 }
 
 const AuthContext = createContext(defaultProvider)
@@ -31,6 +35,10 @@ const AuthProvider = ({ children }: Props) => {
     const [errorMessage, setErrorMessage] = useState<string | null>(defaultProvider.errorMessage)
     const [sucessMessage, setSucessMessage] = useState<string | null>(defaultProvider.sucessMessage)
 
+    const [rules, setRules] = useState<(DataRule | undefined)[]>(defaultProvider.rules)
+    const [groupAdmin, setGroupAdmin] = useState< DataGroup | undefined>(defaultProvider.groupAdmin)
+
+
     const router = useRouter()
 
     useEffect(() => {
@@ -41,6 +49,13 @@ const AuthProvider = ({ children }: Props) => {
 
           const storedData =window.localStorage.getItem('userData')!
           setUser(JSON.parse(storedData))
+
+          const userData:UserDataType =JSON.parse(storedData)
+          const groups = userData.groupStaffs.flatMap(group => group.idGroup2)
+  
+          setGroupAdmin(groups.find(gr => gr?.isAdmin))
+        
+          setRules(groups?.flatMap(groupRule => groupRule?.groupRules?.flatMap(rule => rule.idRule2))) 
           /*await http
             .get(authConfig.meEndpoint, {
               headers: {
@@ -67,15 +82,22 @@ const AuthProvider = ({ children }: Props) => {
 
       initAuth()
     }, [])
+
     const login = (params: LoginParams, errorCallback?: CallbackType) =>{
         http
         .post('service-user/staff/signin', params)
         .then(async res => {
           window.localStorage.setItem('storageTokenKeyName', res.data.accessToken)
           window.localStorage.setItem('storageTokenRefreshKeyName', res.data.refreshToken)
-          const userData = res.data.user
+          const userData: UserDataType = res.data.user
           setUser({ ...userData })
-          await window.localStorage.setItem('userData', JSON.stringify(userData))    
+          await window.localStorage.setItem('userData', JSON.stringify(userData))  
+
+          const groups = userData.groupStaffs.flatMap(group => group.idGroup2)
+  
+          setGroupAdmin(groups.find(gr => gr?.isAdmin))
+        
+          setRules(groups?.flatMap(groupRule => groupRule?.groupRules?.flatMap(rule => rule.idRule2))) 
         })
         .then(() => {
          /* http
@@ -120,6 +142,8 @@ const AuthProvider = ({ children }: Props) => {
       setSucessMessage,
       login: login,
       logout: logout,
+      rules: rules,
+      groupAdmin: groupAdmin,
     }
   
     return <AuthContext.Provider value={values}>{children}</AuthContext.Provider>

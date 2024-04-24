@@ -1,3 +1,6 @@
+import {DataGroupStaff} from '../pages/group/components/view'
+import { DataRule } from "@/pages/rule"
+import { DataGroup } from '@/pages/group';
 
 export type CallbackType = () => void
 
@@ -13,6 +16,10 @@ export type AuthValuesType ={
 
     sucessMessage: string | null
     setSucessMessage: (value: string | null) => void
+
+    rules:(DataRule | undefined)[]
+
+    groupAdmin: DataGroup | undefined
 }
 
 export type LoginParams = {
@@ -34,5 +41,5 @@ export type UserDataType = {
     ctps: string
     phone: string
     mobile: string
-    //groupStaffs: GroupStaff[];
+    groupStaffs: DataGroupStaff[];
 }

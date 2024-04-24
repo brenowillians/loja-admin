@@ -11,7 +11,7 @@ import Grid from '@mui/material/Grid';
 import { Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, FormControl, FormControlLabel, FormHelperText, LinearProgress, Switch, Typography } from '@mui/material';
 import TextField from '@mui/material/TextField';
 import SearchIcon from '@mui/icons-material/Search';
-import EditIcon from '@mui/icons-material/Edit';
+
 import DeleteIcon from '@mui/icons-material/Delete';
 import http from '../../utils/http'
 import * as yup from 'yup'
@@ -19,9 +19,10 @@ import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Checkbox from '@mui/material/Checkbox';
 import Snackbar from '@mui/material/Snackbar';
+import { Fragment } from 'react';
 
-export interface DataRule {
-    idRule?: number;
+interface DataAddressType {
+    idAddressType?: number;
     description: string ;
     
 }
@@ -43,16 +44,16 @@ export default function StickyHeadTable() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [search, setSearch] = React.useState('');
-  const [rules, setRules] =React.useState<DataRule[]>([])
-  const [rule, setRule] =React.useState<DataRule>({
-    idRule: 0,
+  const [addressTypes, setAddressTypes] =React.useState<DataAddressType[]>([])
+  const [addressType, setAddressType] =React.useState<DataAddressType>({
+    idAddressType: 0,
     description: ''
   })
   const [total, setTotal] = React.useState(0);
  
 
   const defaultValues = {
-    description: rule.description,
+    description: addressType.description,
     
     }
 
@@ -70,9 +71,9 @@ export default function StickyHeadTable() {
 
     React.useEffect(()=>{
         reset({
-            description: rule.description,
+            description: addressType.description,
         })
-    },[rule])
+    },[addressType])
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -87,13 +88,25 @@ export default function StickyHeadTable() {
 //função que estabele quantos produtos serão listados na pagina
 
 
-  const handleEdit = (ruleParameter: DataRule) => {
+  const handleEdit = (addressTypeParameter: DataAddressType) => {
     //função que abre o Dialog de criação / edição de cadastros
-    setRule(ruleParameter)
+    setAddressType(addressTypeParameter)
     setOpen(true)
   };
 
-  
+  const handleDelete = async (addressTypeParameter: DataAddressType) => {
+    try{
+        await http.delete(`service-user/address-type/${addressTypeParameter.idAddressType}`)
+        setReload(!reload)
+        setSnackMessage("Registro excluído com sucesso.")
+    }
+    catch(error){
+        console.log(error);
+        setSnackMessage("Não foi possível excluir o Tamanho")
+    }
+
+  };
+
   const handleChangeSearch = (event: any) => {
     const { target: { name, value } } = event;
     setSearch(value )
@@ -128,16 +141,16 @@ export default function StickyHeadTable() {
     setSaving(true)
     try{
 
-        let modifiedRule={...rule,...data}
+        let modifiedAddressType={...addressType,...data}
 
-      setRule(modifiedRule)
+      setAddressType(modifiedAddressType)
   
-      if(modifiedRule.idRule){ //UPDATE
-        await http.patch(`service-user/rule/${modifiedRule.idRule}`,modifiedRule)
+      if(modifiedAddressType.idAddressType){ //UPDATE
+        await http.patch(`service-user/address-type/${modifiedAddressType.idAddressType}`,modifiedAddressType)
         setSnackMessage("Registro atualizado com sucesso.")
       }
       else{ //INSERT
-        await http.post(`service-user/rule/`,modifiedRule)
+        await http.post(`service-user/address-type/`,modifiedAddressType)
         setSnackMessage("Registro criado com sucesso.")
       }
       setOpen(false)
@@ -153,10 +166,11 @@ export default function StickyHeadTable() {
 
   React.useEffect (()=>{
     const loadData = async () =>{
-        setLoading(true)
         try{
+            setLoading(true)
+
             console.log('load')
-            const response = await http.post('service-user/rule/list', {
+            const response = await http.post('service-user/address-type/list', {
                 description: search,
                 items: rowsPerPage,
                 page: page+1,
@@ -164,7 +178,7 @@ export default function StickyHeadTable() {
             })
             if(response.data.data?.result){
                 if(Array.isArray(response.data.data.result)){
-                    setRules(response.data.data.result)
+                    setAddressTypes(response.data.data.result)
                     setTotal(response.data.data.total)
                 }
                 else{
@@ -241,7 +255,7 @@ export default function StickyHeadTable() {
                     </TableHead>
                     <TableBody>
                         {
-                            rules.map((rule, index) => (
+                            addressTypes.map((addressType, index) => (
                                 <TableRow hover role="checkbox" tabIndex={-1} key={index}>
                                     
                                     <TableCell
@@ -249,10 +263,32 @@ export default function StickyHeadTable() {
                                         align={'left'}
                                         style={{ minWidth: 200 }}
                                     >
-                                        {rule.description}
+                                        {addressType.description}
                                     </TableCell>
                                     
-                                    
+                                    <TableCell
+                                        key={'createdDate'}
+                                        align={'right'}
+                                        style={{ minWidth: 100 }}
+                                    >
+                                            <SearchIcon 
+                                                fontSize='medium' 
+                                                sx={{cursor:'pointer'}}
+                                                onClick={() =>handleEdit({
+                                                    idAddressType: addressType.idAddressType,
+                                                    description: addressType.description,
+                                                    
+                                                  })}
+                                            /> &nbsp;                                             
+                                            <DeleteIcon 
+                                                fontSize='medium' 
+                                                sx={{cursor:'pointer'}}
+                                                onClick={() =>handleDelete({
+                                                    idAddressType: addressType.idAddressType,
+                                                    description: addressType.description,
+                                                  })}
+                                            /> 
+                                    </TableCell>
                                 </TableRow>
 
                             ))
@@ -292,12 +328,12 @@ export default function StickyHeadTable() {
                                 render={({ field: { value, onChange, onBlur } }) => (
                                     <TextField
                                         autoFocus
-                                        label='Regra'
+                                        label='Tipo de Endereço'
                                         value={value}
                                         onBlur={onBlur}
                                         onChange={onChange}
                                         error={Boolean(errors.description)}
-                                        placeholder='Regra'
+                                        placeholder='Tipo de Endereço'
                                         inputProps={{ maxLength: 100 }}
                                     />
                                 )}
@@ -318,9 +354,9 @@ export default function StickyHeadTable() {
                 { saving ? 
 
                     <CircularProgress size={20} color="inherit" />
-                    :
+                :
                     'Salvar'
-                    }  
+                }    
                 </Button>
                 <Button variant='outlined' sx={{ mr: 1, mt:3 }} color='secondary' onClick={() =>setOpen(false)}>
                     Fechar

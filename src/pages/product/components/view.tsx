@@ -5,6 +5,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { DataProduct } from "..";
 import http from "@/utils/http";
+import { useAuth } from '@/hooks/useAuth';
 
 interface ViewProductProps {
     open: boolean;
@@ -57,7 +58,8 @@ const schema = yup.object().shape({
     active: yup.boolean(),
     image: yup.string(),//.required("A imagem do  não pode estar em branco."),
     fullPrice: yup.number().transform((val,orig) => orig == "" ? undefined : val).required("O Preço do Produto não pode estar em branco.").typeError("Value must be a number*"),
-    salePrice: yup.number().typeError("O Preço do Produto não pode estar em branco."),//.required("O Preço de Venda do Banco pode estar em branco, pois pode ou não estar em promoção."),
+    salePrice: yup.number().typeError("O Preço do Produto não pode estar em branco.").nullable().moreThan(0, "Floor area cannot be negative")
+    .transform((_, val) => (val !== "" ? Number(val) : null)),
     onSale: yup.boolean(),//.required("O Estoque do Banco não pode estar em branco."),
     description: yup.string().required("A Descrição do Produto não pode estar em branco."),
     idBrand: yup.number().required("A Marca do Produto não pode estar em branco."),
@@ -76,6 +78,8 @@ export default function ViewProductComponent(props: ViewProductProps) {
     const [sizes, setSizes] =React.useState<DataSize[]>([])
     const [originalProductSizes, setOriginalProductSizes] =React.useState<DataProductSize[]>([])
     const [productSizes, setProductSizes] =React.useState<DataProductSize[]>([])
+
+    const auth = useAuth()
 
     const defaultValues = {
         name: product.name,
@@ -525,14 +529,16 @@ export default function ViewProductComponent(props: ViewProductProps) {
             
             </DialogContent>
             <DialogActions sx={{ justifyContent: 'center' }}>
-                <Button type='submit' variant='contained' sx={{ mr: 1, mt:3 }}>
-                { saving ? 
+                { auth.rules?.find(rule => rule?.description == 'Alterar Produtos') || auth.groupAdmin ?
+                    <Button type='submit' variant='contained' sx={{ mr: 1, mt:3 }}>
+                    { saving ? 
 
-                    <CircularProgress size={20} color="inherit" />
-                :
-                    'Salvar'
-                }    
-                </Button>
+                        <CircularProgress size={20} color="inherit" />
+                    :
+                        'Salvar'
+                    }    
+                    </Button>
+                :null}
                 <Button variant='outlined' sx={{ mr: 1, mt:3 }} color='secondary' onClick={() =>setOpen(false)}>
                     Fechar
                 </Button>

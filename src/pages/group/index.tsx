@@ -8,33 +8,30 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Grid from '@mui/material/Grid';
-import { Button, Dialog, DialogActions, DialogContent, FormControl, FormControlLabel, FormHelperText, Switch, Typography } from '@mui/material';
+import { Box, Button, LinearProgress } from '@mui/material';
 import TextField from '@mui/material/TextField';
 import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import http from '../../utils/http'
-import * as yup from 'yup'
-import { useForm, Controller } from 'react-hook-form'
-import { yupResolver } from '@hookform/resolvers/yup'
+import {DataGroupRule} from './components/view'
+
 import Checkbox from '@mui/material/Checkbox';
 import Snackbar from '@mui/material/Snackbar';
+import ViewGroupComponent from './components/view';
 
-interface DataGroup {
+export interface DataGroup {
     idGroup?: number;
     name: string ;
     isAdmin: boolean ;
+    groupRules?: DataGroupRule[];
 }
 
-const schema = yup.object().shape({
-    name: yup.string().required("O Nome não pode estar em branco."),
-    isAdmin: yup.boolean().required("O campo não pode estar em branco."),
-})
-//yup:controla as ações individuais no formulário de cada função (cada botão de switch, o que for ou não preenchido etc)
 
 export default function StickyHeadTable() {
   //const defaultValues: Data[] = []
 
+  const [loading, setLoading] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   const [snackMessage, setSnackMessage] = React.useState('');
   const [reload, setReload] = React.useState(false);
@@ -49,30 +46,6 @@ export default function StickyHeadTable() {
   })
   const [total, setTotal] = React.useState(0);
  
-
-  const defaultValues = {
-    name: group.name,
-    isAdmin: group.isAdmin
-    }
-
-    const {
-        control,
-        handleSubmit,
-        reset,
-        formState: { errors }
-    } = useForm({
-        defaultValues,
-        mode:'onSubmit',
-        resolver: yupResolver(schema)
-    })
-
-
-    React.useEffect(()=>{
-        reset({
-            name: group.name,
-            isAdmin: group.isAdmin
-        })
-    },[group])
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -136,33 +109,10 @@ export default function StickyHeadTable() {
     //função responsável por ativar a ação de buscar, acionada ao pressionar o tecla Enter do teclado
   }
 
-  const onSubmit =  async(data: any) =>{
-    try{
-
-        let modifiedGroup={...group,...data}
-
-      setGroup(modifiedGroup)
-  
-      if(modifiedGroup.idGroup){ //UPDATE
-        await http.patch(`service-user/group/${modifiedGroup.idGroup}`,modifiedGroup)
-        setSnackMessage("Registro atualizado com sucesso.")
-      }
-      else{ //INSERT
-        await http.post(`service-user/group/`,modifiedGroup)
-        setSnackMessage("Registro criado com sucesso.")
-      }
-      setOpen(false)
-      setReload(!reload)
-    }
-    catch(error){
-      console.log(error)
-      setSnackMessage("Não foi possível processar a solicitação.")
-    }
-  }
-  //função que faz subir e registrar o tamanho, seja criando uma nova, seja editando uma já criada.
 
   React.useEffect (()=>{
     const loadData = async () =>{
+        setLoading(true)
         try{
             console.log('load')
             const response = await http.post('service-user/group/list', {
@@ -189,12 +139,18 @@ export default function StickyHeadTable() {
             console.log(error)
             setSnackMessage("Não foi possível processar a solicitação.")
         }
+        setLoading(false)
     }
     loadData()
   },[page, reload])
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+        { loading &&
+            <Box sx={{ width: '100%' }}>
+              <LinearProgress color="secondary" />
+            </Box> 
+        }
         <Grid container spacing={2}>
             <Grid item xs={12}>
                 <Grid container padding={2} spacing={2}>
@@ -314,73 +270,14 @@ export default function StickyHeadTable() {
             </Grid>
         </Grid>
 
-        <Dialog
-            open={open}
-            onClose={() =>setOpen(false)}
-            aria-labelledby='user-view-edit'
-            sx={{ '& .MuiPaper-root': { width: '100%', maxWidth: 650, p: [2, 10] } }}
-            aria-describedby='user-view-edit-description'
-        >
-            <form  autoComplete='off' onSubmit={handleSubmit(onSubmit)}>              
-            <DialogContent>
-                <Grid container spacing={6}>
-                
-                    <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth sx={{ mb: 4 }}>
-                            <Controller
-                                name='name'
-                                control={control}
-                                rules={{ required: true }}
-                                render={({ field: { value, onChange, onBlur } }) => (
-                                    <TextField
-                                        autoFocus
-                                        label='Nome'
-                                        value={value}
-                                        onBlur={onBlur}
-                                        onChange={onChange}
-                                        error={Boolean(errors.name)}
-                                        placeholder='Nome'
-                                        inputProps={{ maxLength: 100 }}
-                                    />
-                                )}
-                            />
-                            {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
-                        </FormControl>
-
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-
-                        <FormControl fullWidth sx={{ mb: 4 }}>
-                            <Controller
-                                name='isAdmin'
-                                control={control}
-                                rules={{ required: true }}
-                                render={({ field: { value, onChange} }) => (
-                                        <FormControlLabel
-                                            control={<Switch checked={value} onChange={onChange} />}
-                                            label="Cargo Administrativo"
-                                        />
-                                )}
-                            />
-                            {errors.isAdmin && <FormHelperText sx={{ color: 'error.main' }}>{errors.isAdmin.message}</FormHelperText>}
-                        </FormControl>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-
-                    </Grid>
-                </Grid>
-            
-            </DialogContent>
-            <DialogActions sx={{ justifyContent: 'center' }}>
-                <Button type='submit' variant='contained' sx={{ mr: 1, mt:3 }}>
-                    Salvar
-                </Button>
-                <Button variant='outlined' sx={{ mr: 1, mt:3 }} color='secondary' onClick={() =>setOpen(false)}>
-                    Fechar
-                </Button>
-            </DialogActions>
-            </form>
-        </Dialog> 
+        <ViewGroupComponent 
+            open={open} 
+            reload={reload}
+            group={group}
+            setSnackMessage = {setSnackMessage}
+            setOpen = {setOpen}
+            setReload = {setReload}
+        />
 
         <Snackbar
             anchorOrigin={{  vertical: 'bottom', horizontal: 'left' }}
@@ -388,6 +285,7 @@ export default function StickyHeadTable() {
             onClose={()=> setSnackMessage('')}
             message={snackMessage}
             key={'snack'}
+            autoHideDuration={5000}
         />       
     </Paper>
   );

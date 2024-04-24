@@ -18,12 +18,15 @@ import { deepPurple } from '@mui/material/colors';
 import { getInitials } from '@/utils/get-initials';
 
 const pages = [
-  {title: 'Marcas', url:'brand' },
-  {title: 'Categorias', url:'category' },
-  {title: 'Tamanhos', url:'size' },
-  {title: 'Produtos', url:'product' },
-  {title: 'Funcionarios', url:'staff' },
-  {title: 'Grupo', url:'group' },
+  {title: 'Marcas', url:'brand', rule: "Consultar Marcas"},
+  {title: 'Categorias', url:'category', rule: "Consultar Categorias" },
+  {title: 'Tamanhos', url:'size', rule: "Consultar Tamanhos" },
+  {title: 'Produtos', url:'product', rule: "Consultar Produtos"},
+  {title: 'Funcionarios', url:'staff', rule: "Consultar Funcionarios" },
+  {title: 'Grupo', url:'group', rule: "Consultar Grupos" },
+  {title: 'Endereço', url:'address-type', rule: "Consultar Endereços" },
+  {title: 'Usuário', url:'user-site', rule: "Consultar Usuários" },
+  {title: 'Regra', url:'rule', rule: "Consultar Regras" },
 ];
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
@@ -49,6 +52,8 @@ export default function AppBarComponent() {
   };
 
   const router = useRouter()
+
+
 
   return (
     <AppBar position="static">
@@ -103,11 +108,14 @@ export default function AppBarComponent() {
                 display: { xs: 'block', md: 'none' },
               }}
             >
-              {pages.map((page) => (
-                <MenuItem key={page.url} onClick={()=> router.push(`/${page.url}`)}>
-                  <Typography textAlign="center">{page.title}</Typography>
-                </MenuItem>
-              ))}
+              {pages.map((page) => {
+                return (auth.rules?.find(rule => rule?.description == page.rule) || auth.groupAdmin) ? (
+                  <MenuItem key={page.url} onClick={()=> router.push(`/${page.url}`)}>
+                    <Typography textAlign="center">{page.title}</Typography>
+                  </MenuItem>
+                ) 
+                : null
+              })}
             </Menu>
             
           </Box>
@@ -132,7 +140,8 @@ export default function AppBarComponent() {
             LOGO
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-            {pages.map((page) => (
+            {pages.map((page) => {
+              return (auth.rules?.find(rule => rule?.description == page.rule) || auth.groupAdmin) ? (
               <Button
                 key={page.url}
                 onClick={()=> router.push(`/${page.url}`)}
@@ -140,7 +149,9 @@ export default function AppBarComponent() {
               >
                 {page.title}
               </Button>
-            ))}
+            
+            )
+           : null})}
           </Box>
 
           <Box sx={{ flexGrow: 0 }}>
