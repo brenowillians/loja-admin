@@ -20,6 +20,8 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import Checkbox from '@mui/material/Checkbox';
 import Snackbar from '@mui/material/Snackbar';
 import { Fragment } from 'react';
+import { DataRule } from '../rule';
+import { useAuth } from '@/hooks/useAuth';
 
 interface DataAddressType {
     idAddressType?: number;
@@ -43,6 +45,7 @@ export default function StickyHeadTable() {
   const [reload, setReload] = React.useState(false);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [rules, setRules] = React.useState<DataRule[]>([])
   const [search, setSearch] = React.useState('');
   const [addressTypes, setAddressTypes] =React.useState<DataAddressType[]>([])
   const [addressType, setAddressType] =React.useState<DataAddressType>({
@@ -51,7 +54,7 @@ export default function StickyHeadTable() {
   })
   const [total, setTotal] = React.useState(0);
  
-
+  const auth = useAuth()
   const defaultValues = {
     description: addressType.description,
     
@@ -222,6 +225,7 @@ export default function StickyHeadTable() {
 
                         
                     </Grid>
+                    { auth.rules?.find(rule => rule?.description == 'Adicionar Endereços') || auth.groupAdmin ?
                     <Grid item xs={2}>
                         <Button type='submit' 
                             onClick={() =>handleEdit({
@@ -234,6 +238,7 @@ export default function StickyHeadTable() {
                             Adicionar
                         </Button>
                     </Grid>
+                    :null}
                 </Grid>
             </Grid>
             <Grid item xs={12}>
@@ -279,7 +284,8 @@ export default function StickyHeadTable() {
                                                     description: addressType.description,
                                                     
                                                   })}
-                                            /> &nbsp;                                             
+                                            /> &nbsp;              
+                                            { auth.rules?.find(rule => rule?.description == 'Excluir Endereços') || auth.groupAdmin ?                               
                                             <DeleteIcon 
                                                 fontSize='medium' 
                                                 sx={{cursor:'pointer'}}
@@ -288,6 +294,7 @@ export default function StickyHeadTable() {
                                                     description: addressType.description,
                                                   })}
                                             /> 
+                                            :null}
                                     </TableCell>
                                 </TableRow>
 

@@ -24,6 +24,8 @@ export interface DataStaff {
     idStaff?: number;
     name: string ;
     login: string;
+    id_number: string;
+    cpf: string;
     password: string;
     active: boolean ;
     locked: boolean;
@@ -38,7 +40,12 @@ export interface DataStaff {
 const schema = yup.object().shape({
     name: yup.string().required("O Nome não pode estar em branco."),
     login: yup.string().required("O Login não pode estar em branco."),
-    password: yup.string().required("A Senha não pode estar em branco."),
+    cpf: yup.string().required("O CPF não pode estar em branco."),
+    id_number: yup.string().required("O RG não pode estar em branco."),
+    newPassword: yup.string(),
+    newPasswordConfirmation: 
+      yup.string()
+      .oneOf([yup.ref('newPassword')], 'A confirmação da senha está diferente da senha original.'),
     active: yup.boolean(),
     locked: yup.boolean(),
     sector: yup.string().required("O Setor  não pode estar em branco."),
@@ -65,6 +72,8 @@ export default function StickyHeadTable() {
     idStaff: 0,
     name: '' ,
     login: '',
+    cpf:'',
+    id_number:'',
     password: '',
     active: false ,
     locked: false,
@@ -80,7 +89,10 @@ export default function StickyHeadTable() {
   const defaultValues = {
     name: staff.name,
     login: staff.login,
-    password: staff.password,
+    cpf: staff.cpf,
+    id_number: staff.id_number,
+    newPassword: '',
+    newPasswordConfirmation: '',
     active: staff.active,
     locked: staff.locked,
     sector: staff.sector,
@@ -109,7 +121,10 @@ export default function StickyHeadTable() {
         reset({
             name: staff.name,
             login: staff.login,
-            password: staff.password,
+            cpf: staff.cpf,
+            id_number: staff.id_number,
+            newPassword: '',
+            newPasswordConfirmation: '',
             active: staff.active,
             locked: staff.locked,
             sector: staff.sector,
@@ -186,7 +201,13 @@ export default function StickyHeadTable() {
     setSaving(true)
     try{
 
-        let modifiedStaff={...staff,...data}
+      let modifiedStaff={...staff,...data}
+      if(data.newPassword){
+        modifiedStaff.password= data.newPassword
+      }
+
+      delete modifiedStaff.newPassword
+      delete modifiedStaff.newPasswordConfirmation
 
       setStaff(modifiedStaff)
   
@@ -198,6 +219,7 @@ export default function StickyHeadTable() {
         await http.post(`service-user/staff/`,modifiedStaff)
         setSnackMessage("Registro criado com sucesso.")
       }
+
       setOpen(false)
       setReload(!reload)
     }
@@ -271,6 +293,8 @@ export default function StickyHeadTable() {
                             onClick={() =>handleEdit({
                                 name: '' ,
                                 login: '',
+                                cpf:'',
+                                id_number:'',
                                 password:'',
                                 active: false ,
                                 locked: false,
@@ -439,6 +463,8 @@ export default function StickyHeadTable() {
                                                     idStaff:staff.idStaff,
                                                     name: staff.name,
                                                     login: staff.login,
+                                                    cpf: staff.cpf,
+                                                    id_number: staff.id_number,
                                                     password: staff.password,
                                                     active: staff.active,
                                                     locked: staff.locked,
@@ -456,8 +482,10 @@ export default function StickyHeadTable() {
                                                     idStaff:staff.idStaff,
                                                     name: staff.name,
                                                     login: staff.login,
+                                                    cpf: staff.cpf,
+                                                    id_number: staff.id_number,
                                                     password: staff.password,
-                                                   active: staff.active,
+                                                    active: staff.active,
                                                     locked: staff.locked,
                                                     sector: staff.sector,
                                                     role: staff.role,
@@ -539,46 +567,90 @@ export default function StickyHeadTable() {
                             />
                             {errors.login && <FormHelperText sx={{ color: 'error.main' }}>{errors.login.message}</FormHelperText>}
                         </FormControl>
+
+                        <FormControl fullWidth sx={{ mb: 4 }}>
+                            <Controller
+                                name='id_number'
+                                control={control}
+                                rules={{ required: true }}
+                                render={({ field: { value, onChange, onBlur } }) => (
+                                    <TextField
+                                        autoFocus
+                                        label='RG'
+                                        value={value}
+                                        onBlur={onBlur}
+                                        onChange={onChange}
+                                        error={Boolean(errors.id_number)}
+                                        placeholder='Login'
+                                        inputProps={{ maxLength: 100 }}
+                                    />
+                                )}
+                            />
+                            {errors.id_number && <FormHelperText sx={{ color: 'error.main' }}>{errors.id_number.message}</FormHelperText>}
+                        </FormControl>
                         
                         <FormControl fullWidth sx={{ mb: 4 }}>
                             <Controller
-                                name='password'
+                                name='cpf'
+                                control={control}
+                                rules={{ required: true }}
+                                render={({ field: { value, onChange, onBlur } }) => (
+                                    <TextField
+                                        autoFocus
+                                        label='CPF'
+                                        value={value}
+                                        onBlur={onBlur}
+                                        onChange={onChange}
+                                        error={Boolean(errors.cpf)}
+                                        placeholder='Login'
+                                        inputProps={{ maxLength: 100 }}
+                                    />
+                                )}
+                            />
+                            {errors.cpf && <FormHelperText sx={{ color: 'error.main' }}>{errors.cpf.message}</FormHelperText>}
+                        </FormControl>
+                        
+                        <FormControl fullWidth sx={{ mb: 4 }}>
+                            <Controller
+                                name='newPassword'
                                 control={control}
                                 rules={{ required: true }}
                                 render={({ field: { value, onChange, onBlur } }) => (
                                     <TextField
                                         autoFocus
                                         label='Senha'
+                                        type="password"
                                         value={value}
                                         onBlur={onBlur}
                                         onChange={onChange}
-                                        error={Boolean(errors.password)}
+                                        error={Boolean(errors.newPassword)}
                                         placeholder='Senha'
                                         inputProps={{ maxLength: 100 }}
                                     />
                                 )}
                             />
-                            {errors.password && <FormHelperText sx={{ color: 'error.main' }}>{errors.password.message}</FormHelperText>}
+                            {errors.newPassword && <FormHelperText sx={{ color: 'error.main' }}>{errors.newPassword.message}</FormHelperText>}
                         </FormControl>
                         <FormControl fullWidth sx={{ mb: 4 }}>
                             <Controller
-                                name='password'
+                                name='newPasswordConfirmation'
                                 control={control}
                                 rules={{ required: true }}
                                 render={({ field: { value, onChange, onBlur } }) => (
                                     <TextField
                                         autoFocus
+                                        type="password"
                                         label='Repita a Senha'
                                         value={value}
                                         onBlur={onBlur}
                                         onChange={onChange}
-                                        error={Boolean(errors.password)}
+                                        error={Boolean(errors.newPasswordConfirmation)}
                                         placeholder='Repita a Senha'
                                         inputProps={{ maxLength: 100 }}
                                     />
                                 )}
                             />
-                            {errors.password && <FormHelperText sx={{ color: 'error.main' }}>{errors.password.message}</FormHelperText>}
+                            {errors.newPasswordConfirmation && <FormHelperText sx={{ color: 'error.main' }}>{errors.newPasswordConfirmation.message}</FormHelperText>}
                         </FormControl>
 
                         <FormControl fullWidth sx={{ mb: 4 }}>

@@ -200,7 +200,9 @@ export default function StickyHeadTable() {
 
                         
                     </Grid>
+                    { auth.rules?.find(rule => rule?.description == 'Adicionar Produtos') || auth.groupAdmin ?
                     <Grid item xs={2}>
+                        
                         <Button type='submit' 
                             onClick={() =>handleEdit({
                                 name: '',
@@ -220,6 +222,7 @@ export default function StickyHeadTable() {
                             Adicionar
                         </Button>
                     </Grid>
+                    :null}
                 </Grid>
             </Grid>
             <Grid item xs={12}>
@@ -332,6 +335,7 @@ export default function StickyHeadTable() {
                                         align={'right'}
                                         style={{ minWidth: 100 }}
                                     >
+                                        { auth.rules?.find(rule => rule?.description == 'Consultar Produtos') || auth.groupAdmin ?
                                             <SearchIcon 
                                                 fontSize='medium' 
                                                 sx={{cursor:'pointer'}}
@@ -349,7 +353,8 @@ export default function StickyHeadTable() {
                                                     idBrand: product.idBrand,
                                                     idCategory: product.idCategory
                                                   })}
-                                            /> &nbsp; 
+                                            /> 
+                                            :null} 
 
                                             { auth.rules?.find(rule => rule?.description == 'Excluir Produtos') || auth.groupAdmin ?                                        
                                                 <DeleteIcon 

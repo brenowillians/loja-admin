@@ -19,6 +19,8 @@ import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Checkbox from '@mui/material/Checkbox';
 import Snackbar from '@mui/material/Snackbar';
+import { DataRule } from '../rule';
+import { useAuth } from '@/hooks/useAuth';
 
 interface DataBrand {
     idBrand?: number;
@@ -53,8 +55,10 @@ export default function StickyHeadTable() {
     createdId: 0,
     updatedId: null
   })
+  const [rules, setRules] = React.useState<DataRule[]>([])
   const [total, setTotal] = React.useState(0);
  
+  const auth = useAuth()
 
   const defaultValues = {
     name: brand.name,
@@ -226,6 +230,7 @@ export default function StickyHeadTable() {
 
                         
                     </Grid>
+                    { auth.rules?.find(rule => rule?.description == 'Adicionar Marcas') || auth.groupAdmin ?
                     <Grid item xs={2}>
                         <Button type='submit' 
                             onClick={() =>handleEdit({
@@ -240,6 +245,7 @@ export default function StickyHeadTable() {
                             Adicionar
                         </Button>
                     </Grid>
+                    :null}
                 </Grid>
             </Grid>
             <Grid item xs={12}>
@@ -299,7 +305,7 @@ export default function StickyHeadTable() {
                                         align={'right'}
                                         style={{ minWidth: 100 }}
                                     >
-                                            <EditIcon 
+                                            <SearchIcon 
                                                 fontSize='medium' 
                                                 sx={{cursor:'pointer'}}
                                                 onClick={() =>handleEdit({
@@ -309,7 +315,8 @@ export default function StickyHeadTable() {
                                                     createdId: 0,
                                                     updatedId: null
                                                   })}
-                                            /> &nbsp;                                             
+                                            /> &nbsp;    
+                                            { auth.rules?.find(rule => rule?.description == 'Excluir Marcas') || auth.groupAdmin ?                                         
                                             <DeleteIcon 
                                                 fontSize='medium' 
                                                 sx={{cursor:'pointer'}}
@@ -321,6 +328,7 @@ export default function StickyHeadTable() {
                                                     updatedId: null
                                                   })}
                                             /> 
+                                            :null}
                                     </TableCell>
                                 </TableRow>
 

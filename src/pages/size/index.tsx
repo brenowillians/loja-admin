@@ -19,6 +19,8 @@ import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Checkbox from '@mui/material/Checkbox';
 import Snackbar from '@mui/material/Snackbar';
+import { DataRule } from '../rule';
+import { useAuth } from '@/hooks/useAuth';
 
 interface DataSize {
     idSize?: number;
@@ -45,6 +47,7 @@ export default function StickyHeadTable() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [search, setSearch] = React.useState('');
+  const [rules, setRules] = React.useState<DataRule[]>([])
   const [sizes, setSizes] =React.useState<DataSize[]>([])
   const [size, setSize] =React.useState<DataSize>({
     idSize:0,
@@ -55,6 +58,7 @@ export default function StickyHeadTable() {
   })
   const [total, setTotal] = React.useState(0);
  
+  const auth = useAuth()
 
   const defaultValues = {
     name: size.name,
@@ -226,6 +230,7 @@ export default function StickyHeadTable() {
 
                         
                     </Grid>
+                    { auth.rules?.find(rule => rule?.description == 'Adicionar Tamanhos') || auth.groupAdmin ?
                     <Grid item xs={2}>
                         <Button type='submit' 
                             onClick={() =>handleEdit({
@@ -240,6 +245,7 @@ export default function StickyHeadTable() {
                             Adicionar
                         </Button>
                     </Grid>
+                    :null}
                 </Grid>
             </Grid>
             <Grid item xs={12}>
@@ -309,7 +315,8 @@ export default function StickyHeadTable() {
                                                     createdId: 0,
                                                     updatedId: null
                                                   })}
-                                            /> &nbsp;                                             
+                                            /> &nbsp;    
+                                            { auth.rules?.find(rule => rule?.description == 'Excluir Tamanhos') || auth.groupAdmin ?                                         
                                             <DeleteIcon 
                                                 fontSize='medium' 
                                                 sx={{cursor:'pointer'}}
@@ -321,6 +328,7 @@ export default function StickyHeadTable() {
                                                     updatedId: null
                                                   })}
                                             /> 
+                                            :null}
                                     </TableCell>
                                 </TableRow>
 

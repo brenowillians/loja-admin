@@ -19,6 +19,8 @@ import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Checkbox from '@mui/material/Checkbox';
 import Snackbar from '@mui/material/Snackbar';
+import { useAuth } from '@/hooks/useAuth';
+import { DataRule } from '../rule';
 
 interface DataUserSite {
     idUserSite?: number;
@@ -55,6 +57,7 @@ export default function StickyHeadTable() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [search, setSearch] = React.useState('');
+  const [rules, setRules] = React.useState<DataRule[]>([])
   const [usersSite, setUsersSite] =React.useState<DataUserSite[]>([])
   const [userSite, setUserSite] =React.useState<DataUserSite>({
     idUserSite: 0,
@@ -69,6 +72,7 @@ export default function StickyHeadTable() {
   })
   const [total, setTotal] = React.useState(0);
  
+  const auth = useAuth()
 
   const defaultValues = {
     name: userSite.name,
@@ -413,7 +417,8 @@ export default function StickyHeadTable() {
                                                     mobile: userSite.mobile,
                                                     cpf: userSite.cpf
                                                   })}
-                                            /> &nbsp;                                             
+                                            /> &nbsp;     
+                                            { auth.rules?.find(rule => rule?.description == 'Excluir Usuários') || auth.groupAdmin ?                                        
                                             <DeleteIcon 
                                                 fontSize='medium' 
                                                 sx={{cursor:'pointer'}}
@@ -429,6 +434,7 @@ export default function StickyHeadTable() {
                                                     cpf: userSite.cpf
                                                   })}
                                             /> 
+                                            :null}
                                     </TableCell>
                                 </TableRow>
 
