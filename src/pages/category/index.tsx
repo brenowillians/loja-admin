@@ -408,6 +408,7 @@ export default function StickyHeadTable() {
             
             </DialogContent>
             <DialogActions sx={{ justifyContent: 'center' }}>
+            { auth.rules?.find(rule => rule?.description == 'Salvar') || auth.groupAdmin ?
             <Button type='submit' variant='contained' sx={{ mr: 1, mt:3 }}>
                 { saving ? 
 
@@ -416,6 +417,7 @@ export default function StickyHeadTable() {
                     'Salvar'
                     }  
                 </Button>
+                :null}
                 <Button variant='outlined' sx={{ mr: 1, mt:3 }} color='secondary' onClick={() =>setOpen(false)}>
                     Fechar
                 </Button>

@@ -35,7 +35,7 @@ http.interceptors.response.use(
     async (err) => {
         const originalConfig = err.config;
 
-        /*if (originalConfig.url !== "/usuario/signin" && originalConfig.url !== "/usuario/logged" && err.response) {
+        if (originalConfig.url !== "/login" && err.response) {
             // Access Token was expired
             if (err.response.status === 401 && !originalConfig._retry) {
                 originalConfig._retry = true;
@@ -43,15 +43,18 @@ http.interceptors.response.use(
                 try {
 
                     const httpRefresh = axios.create({
-                        baseURL: process.env.NEXT_PUBLIC_SGA_API_URL,
+                        baseURL: process.env.NEXT_PUBLIC_API_URL,
                     })
-                    const { data } = await httpRefresh.get("usuario/refresh",  {headers: {
-                        Authorization: `Bearer ${window.localStorage.getItem(authConfig.storageTokenRefreshKeyName)}`
+                    
+                    const token = window.localStorage.getItem("storageTokenRefreshKeyName");
+                    
+                    const { data } = await httpRefresh.get("service-user/staff/refresh",  {headers: {
+                        Authorization: `Bearer ${token}`
                     }});
                     
 
-                    window.localStorage.setItem(authConfig.storageTokenKeyName, data.data.accessToken);
-                    window.localStorage.setItem(authConfig.storageTokenRefreshKeyName, data.data.refreshToken); 
+                    window.localStorage.setItem('storageTokenKeyName', data.data.accessToken)
+                    window.localStorage.setItem('storageTokenRefreshKeyName', data.data.refreshToken)
 
                     
                     return http(originalConfig);
@@ -59,16 +62,15 @@ http.interceptors.response.use(
                 catch (_error) {
                     if (axios.isAxiosError(_error) && _error.response?.status === 401) {
                         window.localStorage.removeItem('userData')
-                        window.localStorage.removeItem(authConfig.storageTokenKeyName)
-                        window.localStorage.removeItem(authConfig.storageTokenRefreshKeyName)
-                        window.localStorage.removeItem('settings')
-                        router.push("/login");
+                        window.localStorage.removeItem('storageTokenKeyName')
+                        window.localStorage.removeItem('storageTokenRefreshKeyName')
+                        router.replace('/login')
                     }
                     
                     return Promise.reject(_error);
                 }
             }
-        }*/
+        }
 
         return Promise.reject(err);
     }

@@ -16,25 +16,40 @@ import AdbIcon from '@mui/icons-material/Adb';
 import { useAuth } from '@/hooks/useAuth';
 import { deepPurple } from '@mui/material/colors';
 import { getInitials } from '@/utils/get-initials';
+import ViewStaffComponent, { DataStaff } from '@/pages/staff/components/view'
 
 const pages = [
   {title: 'Marcas', url:'brand', rule: "Consultar Marcas"},
   {title: 'Categorias', url:'category', rule: "Consultar Categorias" },
   {title: 'Tamanhos', url:'size', rule: "Consultar Tamanhos" },
   {title: 'Produtos', url:'product', rule: "Consultar Produtos"},
-  {title: 'Funcionarios', url:'staff', rule: "Consultar Funcionarios" },
+  {title: 'Funcionarios', url:'staff', rule: "Consultar Funcionários" },
   {title: 'Grupo', url:'group', rule: "Consultar Grupos" },
   {title: 'Endereço', url:'address-type', rule: "Consultar Endereços" },
   {title: 'Usuário', url:'user-site', rule: "Consultar Usuários" },
   {title: 'Regra', url:'rule', rule: "Consultar Regras" },
 ];
-const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
+const settings = ['Profile', 'Logout'];
 
 
 export default function AppBarComponent() {
   const auth = useAuth()
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
+  const [staff, setStaff] =React.useState<DataStaff>({
+    name: '',
+    login: '',
+    id_number: '',
+    cpf: '',
+    active: false ,
+    locked: false,
+    sector: '',
+    role: '',
+    ctps: '',
+    phone: '',
+    mobile: '',
+  });
+  const [open, setOpen] = React.useState(false);
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
@@ -47,8 +62,21 @@ export default function AppBarComponent() {
     setAnchorElNav(null);
   };
 
-  const handleCloseUserMenu = () => {
+  const openProfile = ()=>{
+    setStaff(auth.user as DataStaff)
+    setOpen(true)
+  }
+
+  const handleCloseUserMenu = (menuName: string) => {
     setAnchorElUser(null);
+    switch(menuName){
+      case "Logout":
+          auth.logout()
+        break;
+      case "Profile":
+        openProfile()
+        break;
+    }
   };
 
   const router = useRouter()
@@ -177,7 +205,7 @@ export default function AppBarComponent() {
               onClose={handleCloseUserMenu}
             >
               {settings.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
+                <MenuItem key={setting} onClick={()=>handleCloseUserMenu(setting)}>
                   <Typography textAlign="center">{setting}</Typography>
                 </MenuItem>
               ))}
@@ -185,6 +213,12 @@ export default function AppBarComponent() {
             </Box>
         </Toolbar>
       </Container>
+      <ViewStaffComponent 
+            open={open} 
+            staff={staff as DataStaff}
+            setOpen = {setOpen}
+            disableSave = {true}
+        />
     </AppBar>
   );
 }

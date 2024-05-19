@@ -529,6 +529,7 @@ export default function ViewProductComponent(props: ViewProductProps) {
             
             </DialogContent>
             <DialogActions sx={{ justifyContent: 'center' }}>
+                
                 { auth.rules?.find(rule => rule?.description == 'Alterar Produtos') || auth.groupAdmin ?
                     <Button type='submit' variant='contained' sx={{ mr: 1, mt:3 }}>
                     { saving ? 

@@ -11,6 +11,5 @@ export default function Home() {
   const auth = useAuth()
   return (
       <main></main>
-      
   );
 }
